@@ -1,0 +1,92 @@
+125,131c125,129
+<         operand_1_067 = self.history[1]
+<         operand_2_067 = self.history[2]
+<         shape_067_1=operand_1_067.shape
+<         shape_067_2=operand_2_067.shape
+<         if operand_1_067.requires_grad==True:
+<             if gradients is not None:
+<                 operand_1_067.grad += gradients
+---
+>         node1 = self.history[1]
+>         node2 = self.history[2]
+>         if node1.requires_grad:
+>             if gradients is None:
+>                 node1.grad += np.ones_like(node1.arr)
+133,137c131,134
+<                 operand_1_067.grad += np.ones_like(shape_067_1)
+<     
+<         if operand_2_067.requires_grad==True:
+<             if gradients is not None:
+<                 operand_2_067.grad += gradients
+---
+>                 node1.grad += gradients
+>         if node2.requires_grad:
+>             if gradients is None:
+>                 node2.grad += np.ones_like(node2.arr)
+139,143c136,142
+<                 operand_2_067.grad += np.ones_like(shape_067_2)
+<         if operand_1_067.history[0] != 'leaf':
+<             operand_1_067.backward(operand_1_067.grad)
+<         if operand_2_067.history[0] != 'leaf':
+<             operand_2_067.backward(operand_2_067.grad)
+---
+>                 node2.grad += gradients
+>         if node1.history[0] != 'leaf':
+>             node1.backward(node1.grad)
+>         if node2.history[0] != 'leaf':
+>             node2.backward(node2.grad)
+> 
+>     
+158,167c157,166
+<         operand_1_067 = self.history[1]
+<         operand_2_067 = self.history[2]
+<         if operand_1_067.requires_grad==True:
+<             operand_1_067.grad += np.dot(gradients, operand_2_067.arr.transpose())
+<         if operand_2_067.requires_grad==True:
+<             operand_2_067.grad += np.dot(operand_1_067.arr.transpose(), gradients)
+<         if operand_1_067.history[0] != 'leaf':
+<             operand_1_067.backward(operand_1_067.grad)
+<         if operand_2_067.history[0] != 'leaf':
+<             operand_2_067.backward(operand_2_067.grad)
+---
+>         node1 = self.history[1]
+>         node2 = self.history[2]
+>         if node1.requires_grad:
+>             node1.grad += np.dot(gradients, node2.arr.T)
+>         if node2.requires_grad:
+>             node2.grad += np.dot(node1.arr.T, gradients)
+>         if node1.history[0] != 'leaf':
+>             node1.backward(node1.grad)
+>         if node2.history[0] != 'leaf':
+>             node2.backward(node2.grad)
+188,193c187,188
+<         if self.history[0]=='matmul':
+<             if gradients is not None:
+<                 self.grad_matmul(gradients)
+<             else:
+<                 self.grad_matmul(np.ones_like(self.arr))
+< 
+---
+>         if self.history[0] == 'leaf':
+>             pass
+195c190,192
+<             if gradients is not None:
+---
+>             if gradients is None:
+>                 self.grad_add()
+>             else:
+196a194,196
+>         else:
+>             if gradients is None:
+>                 self.grad_matmul(np.ones_like(self.arr))
+198,204c198,199
+<                 self.grad_add()
+<                 
+<         
+<         elif self.history[0]=='leaf':
+<                 if self.requires_grad==True:
+<                     self.grad = gradients
+<     
+---
+>                 self.grad_matmul(gradients)
+>         pass
